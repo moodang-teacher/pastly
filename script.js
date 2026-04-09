@@ -176,9 +176,12 @@ function startTimer() {
   timeLeft = 60;
   const display = document.getElementById('timer-display');
   display.innerText = timeLeft;
+  display.classList.remove('timer-blink');
   timerInterval = setInterval(() => {
     timeLeft--;
     display.innerText = timeLeft;
+    if (timeLeft <= 10 && timeLeft > 0) display.classList.add('timer-blink');
+    else display.classList.remove('timer-blink');
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       checkAnswer(-1);
