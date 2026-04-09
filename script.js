@@ -1,163 +1,156 @@
-/**
- * 자격증 필기 시험 앱 - 최종 결과 리포트 기능 추가
- */
-
+let allQuestions = [];
 let quizData = [];
 let currentIndex = 0;
-let correctAnswersCount = 0; // 맞은 개수 카운트 추가
-const STORAGE_KEY = 'wrong_graphics_2016_4'; 
-let wrongAnswers = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let correctAnswersCount = 0;
+let timerInterval;
+let timeLeft = 60;
+const STORAGE_KEY = 'wrong_answers_ids';
 
-// 테마 로직
+// 테마 제어
 const themeToggleBtn = document.getElementById('theme-toggle');
-const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
 function initThemeIcon() {
-    if (document.documentElement.classList.contains('dark')) {
-        themeToggleLightIcon.classList.remove('hidden');
-        themeToggleDarkIcon.classList.add('hidden');
-    } else {
-        themeToggleDarkIcon.classList.remove('hidden');
-        themeToggleLightIcon.classList.add('hidden');
-    }
+  const isDark = document.documentElement.classList.contains('dark');
+  document
+    .getElementById('theme-toggle-light-icon')
+    .classList.toggle('hidden', !isDark);
+  document
+    .getElementById('theme-toggle-dark-icon')
+    .classList.toggle('hidden', isDark);
 }
-
-themeToggleBtn.addEventListener('click', function() {
-    themeToggleDarkIcon.classList.toggle('hidden');
-    themeToggleLightIcon.classList.toggle('hidden');
-    if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-    } else {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-    }
+themeToggleBtn.addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  initThemeIcon();
 });
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
+// 앱 시작
+async function startApp(mode) {
+  try {
+    const response = await fetch('./data/graphics.json');
+    const data = await response.json();
+    allQuestions = data.questions;
+    document.getElementById('exam-title').innerText = data.subject_name;
 
-async function loadQuizData() {
-    try {
-        const response = await fetch('./data/graphics.json');
-        const data = await response.json();
-        const round = data.exam_data.rounds[0];
-        document.getElementById('exam-title').innerText = `${round.round_name} ${round.subject_name}`;
-        quizData = shuffleArray([...round.questions]); 
-        document.getElementById('total-pos').innerText = quizData.length;
-        renderQuestion();
-    } catch (error) {
-        console.error("오류 발생:", error);
+    if (mode === 'random') {
+      quizData = shuffleArray([...allQuestions]).slice(0, 60);
+    } else if (mode === 'wrong') {
+      const wrongIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      quizData = allQuestions.filter((q) => wrongIds.includes(q.id));
+      if (quizData.length === 0) {
+        alert('복습할 오답이 없습니다! 랜덤 풀기를 먼저 진행해 주세요.');
+        return;
+      }
+      shuffleArray(quizData);
     }
+
+    document.getElementById('main-menu').classList.add('hidden');
+    document.getElementById('quiz-container').classList.remove('hidden');
+    renderQuestion();
+  } catch (e) {
+    alert('데이터 로드 실패!');
+  }
 }
 
 function renderQuestion() {
-    const q = quizData[currentIndex];
-    const optionsList = document.getElementById('options-list');
-    const feedback = document.getElementById('feedback');
-    const progressBar = document.getElementById('progress-bar');
-    
-    feedback.classList.add('hidden');
-    optionsList.innerHTML = '';
-    
-    const progressPercent = ((currentIndex) / quizData.length) * 100;
-    progressBar.style.width = `${progressPercent}%`;
-    document.getElementById('current-pos').innerText = currentIndex + 1;
-    
-    document.getElementById('category-badge').innerText = q.category;
-    document.getElementById('question-text').innerText = `[No.${q.question_number}] ${q.question_text}`;
+  const q = quizData[currentIndex];
+  const optionsList = document.getElementById('options-list');
+  document.getElementById('feedback').classList.add('hidden');
+  optionsList.innerHTML = '';
 
-    q.options.forEach((text, idx) => {
-        const btn = document.createElement('button');
-        btn.className = "option-btn w-full text-left p-4 rounded-xl border-2 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/50 transition-all duration-200 flex items-start gap-3 group";
-        btn.innerHTML = `
-            <span class="flex-none w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center text-sm font-bold group-hover:bg-indigo-500 dark:group-hover:bg-indigo-400 group-hover:text-white transition-colors">${idx + 1}</span>
-            <span class="text-slate-700 dark:text-slate-300 font-medium">${text}</span>
-        `;
-        btn.onclick = () => checkAnswer(idx);
-        optionsList.appendChild(btn);
-    });
+  document.getElementById('current-pos').innerText = currentIndex + 1;
+  document.getElementById('total-pos').innerText = quizData.length;
+  document.getElementById('progress-bar').style.width =
+    `${(currentIndex / quizData.length) * 100}%`;
+  document.getElementById('category-badge').innerText = q.category;
+  document.getElementById('question-text').innerText = q.question_text;
+
+  q.options.forEach((text, idx) => {
+    const btn = document.createElement('button');
+    btn.className =
+      'option-btn w-full text-left p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 hover:border-indigo-200 dark:hover:border-indigo-700 transition-all flex items-start gap-3 group';
+    btn.innerHTML = `<span class="flex-none w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-sm font-bold flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors">${idx + 1}</span>
+                         <span class="text-slate-700 dark:text-slate-300 font-medium">${text}</span>`;
+    btn.onclick = () => checkAnswer(idx);
+    optionsList.appendChild(btn);
+  });
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 60;
+  const display = document.getElementById('timer-display');
+  display.innerText = timeLeft;
+  display.classList.remove('animate-pulse');
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    display.innerText = timeLeft;
+    if (timeLeft <= 10) display.classList.add('animate-pulse');
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      checkAnswer(-1);
+    }
+  }, 1000);
 }
 
 function checkAnswer(selectedIdx) {
-    const q = quizData[currentIndex];
-    const btns = document.querySelectorAll('.option-btn');
-    const feedbackArea = document.getElementById('feedback');
-    const feedbackCard = feedbackArea.querySelector('div');
-    const explanation = document.getElementById('explanation-text');
-    const nextBtn = document.getElementById('next-btn');
+  clearInterval(timerInterval);
+  const q = quizData[currentIndex];
+  const btns = document.querySelectorAll('.option-btn');
+  const feedbackCard = document.getElementById('feedback').querySelector('div');
+  const nextBtn = document.getElementById('next-btn');
 
-    btns.forEach(btn => btn.disabled = true);
-    feedbackCard.classList.remove('bg-emerald-600', 'dark:bg-emerald-700', 'bg-rose-600', 'dark:bg-rose-700');
-    nextBtn.classList.remove('text-emerald-600', 'dark:text-emerald-800', 'text-rose-600', 'dark:text-rose-800');
+  btns.forEach((b) => (b.disabled = true));
+  const isCorrect = selectedIdx === q.answer_index;
 
-    const isCorrect = (selectedIdx === q.answer_index);
+  if (isCorrect) {
+    correctAnswersCount++;
+    let ids = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(ids.filter((id) => id !== q.id)),
+    ); // 맞히면 오답 리스트에서 제거
+  } else {
+    let ids = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    if (!ids.includes(q.id)) {
+      ids.push(q.id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+    } // 틀리면 저장
+  }
 
-    if (isCorrect) {
-        correctAnswersCount++; // 정답 카운트 증가
-        explanation.innerText = `정답입니다! 😊 \n\n해설: ${q.explanation}`;
-        feedbackCard.classList.add('bg-emerald-600', 'dark:bg-emerald-700');
-        nextBtn.classList.add('text-emerald-600', 'dark:text-emerald-800');
-    } else {
-        explanation.innerText = `틀렸습니다. 😥 정답은 ${q.answer_index + 1}번입니다. \n\n해설: ${q.explanation}`;
-        feedbackCard.classList.add('bg-rose-600', 'dark:bg-rose-700');
-        nextBtn.classList.add('text-rose-600', 'dark:text-rose-800');
-
-        if (!wrongAnswers.includes(q.question_number)) {
-            wrongAnswers.push(q.question_number);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswers));
-        }
-    }
-    feedbackArea.classList.remove('hidden');
+  feedbackCard.className = `rounded-3xl p-6 text-white shadow-lg ${isCorrect ? 'bg-emerald-600' : 'bg-rose-600'}`;
+  nextBtn.className = `w-full py-4 bg-white font-bold rounded-2xl shadow-md ${isCorrect ? 'text-emerald-600' : 'text-rose-600'}`;
+  document.getElementById('explanation-text').innerText = isCorrect
+    ? `정답입니다! 😊\n\n${q.explanation}`
+    : `정답은 ${q.answer_index + 1}번입니다. 😥\n\n${q.explanation}`;
+  document.getElementById('feedback').classList.remove('hidden');
 }
 
-// 다음 문제 버튼 클릭 이벤트
-document.getElementById('next-btn').addEventListener('click', () => {
-    currentIndex++;
-    if (currentIndex < quizData.length) {
-        renderQuestion();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-        showResult(); // 60문제 다 풀면 모달 실행
-    }
-});
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
 
-/**
- * 최종 결과 모달 표시 함수
- */
+document.getElementById('next-btn').onclick = () => {
+  currentIndex++;
+  if (currentIndex < quizData.length) renderQuestion();
+  else showResult();
+};
+
 function showResult() {
-    const score = Math.round((correctAnswersCount / quizData.length) * 100);
-    const isPassed = score >= 60; // 60점 이상 합격
-
-    const modal = document.getElementById('result-modal');
-    const statusText = document.getElementById('result-status');
-    const iconBox = document.getElementById('result-icon');
-    
-    // 모달 데이터 업데이트
-    document.getElementById('final-score').innerText = score;
-    document.getElementById('correct-count').innerText = `${correctAnswersCount}개`;
-    document.getElementById('wrong-count').innerText = `${quizData.length - correctAnswersCount}개`;
-
-    if (isPassed) {
-        statusText.innerText = "합격입니다!";
-        statusText.className = "text-3xl font-bold mb-2 text-emerald-600";
-        iconBox.innerText = "🎊";
-        iconBox.className = "w-20 h-20 mx-auto rounded-full bg-emerald-100 text-4xl mb-4 flex items-center justify-center";
-    } else {
-        statusText.innerText = "불합격입니다.";
-        statusText.className = "text-3xl font-bold mb-2 text-rose-600";
-        iconBox.innerText = "😰";
-        iconBox.className = "w-20 h-20 mx-auto rounded-full bg-rose-100 text-4xl mb-4 flex items-center justify-center";
-    }
-
-    modal.classList.remove('hidden');
+  const score = Math.round((correctAnswersCount / quizData.length) * 100);
+  const isPassed = score >= 60;
+  document.getElementById('result-modal').classList.remove('hidden');
+  document.getElementById('final-score').innerText = score;
+  document.getElementById('result-status').innerText = isPassed
+    ? '합격입니다! 🎊'
+    : '불합격입니다. 😰';
+  document.getElementById('result-status').className =
+    `text-2xl font-bold mb-1 ${isPassed ? 'text-emerald-600' : 'text-rose-600'}`;
+  document.getElementById('result-icon').innerText = isPassed ? '🎊' : '😰';
 }
 
 initThemeIcon();
-loadQuizData();
