@@ -64,6 +64,27 @@ function renderQuestion() {
   document.getElementById('category-badge').innerText = q.category;
   document.getElementById('question-text').innerText = q.question_text;
 
+  const figureEl = document.getElementById('question-figure');
+  const imageEl = document.getElementById('question-image');
+  const imageSrc = q.image || q.image_url;
+  imageEl.onload = null;
+  imageEl.onerror = null;
+  if (imageSrc) {
+    imageEl.alt = q.image_alt || '문제 참고 이미지';
+    imageEl.onerror = () => {
+      figureEl.classList.add('hidden');
+      imageEl.removeAttribute('src');
+    };
+    imageEl.onload = () => {
+      figureEl.classList.remove('hidden');
+    };
+    imageEl.src = imageSrc;
+  } else {
+    figureEl.classList.add('hidden');
+    imageEl.removeAttribute('src');
+    imageEl.alt = '';
+  }
+
   q.options.forEach((text, idx) => {
     const btn = document.createElement('button');
     btn.className =
