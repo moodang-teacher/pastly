@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>자격증 필기 마스터</title>
+    <title>자격증 마스터 - 게이미피케이션</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = { darkMode: 'class' };
@@ -21,77 +21,100 @@
       @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
       body {
         font-family: 'Pretendard', sans-serif;
-        font-style: normal;
         transition: background-color 0.3s;
-      }
-      i,
-      em {
-        font-style: normal;
       }
       .hidden {
         display: none !important;
+      }
+      .rank-item {
+        transition: all 0.3s ease;
       }
     </style>
   </head>
   <body
     class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 min-h-screen"
   >
-    <div id="main-menu" class="max-w-2xl mx-auto px-4 py-20">
-      <header class="text-center mb-16">
+    <div id="main-menu" class="max-w-2xl mx-auto px-4 py-12">
+      <header class="text-center mb-10">
         <h1
-          class="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-4 tracking-tight"
+          class="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-6 tracking-tight"
         >
           자격증 마스터
         </h1>
-        <p class="text-slate-500 dark:text-slate-400 font-medium text-lg">
-          원하시는 학습 모드를 선택해 주세요.
-        </p>
+
+        <div
+          id="auth-section"
+          class="flex flex-col items-center bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800"
+        >
+          <div id="login-unit">
+            <button
+              id="btn-login"
+              class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all"
+            >
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg"
+                width="20"
+              />
+              <span>Google로 로그인하여 기록 저장</span>
+            </button>
+          </div>
+          <div id="user-unit" class="hidden text-center">
+            <img
+              id="user-photo"
+              src=""
+              class="w-20 h-20 rounded-full border-4 border-indigo-500 mb-3 mx-auto shadow-lg"
+            />
+            <h3 id="user-name" class="font-black text-xl mb-1">사용자</h3>
+            <div class="flex items-center justify-center gap-2">
+              <span
+                id="user-level"
+                class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full text-xs font-black uppercase"
+                >LV.1 디자인 인턴</span
+              >
+            </div>
+          </div>
+        </div>
       </header>
 
-      <div class="grid grid-cols-1 gap-6">
+      <div class="grid grid-cols-1 gap-4 mb-10">
         <button
-          onclick="startApp('random')"
-          class="group p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border-2 border-transparent hover:border-indigo-500 transition-all text-left"
+          id="start-random-btn"
+          class="group p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border-2 border-transparent hover:border-indigo-500 transition-all text-left"
         >
-          <div class="flex items-center justify-between">
-            <div>
-              <h2
-                class="text-xl font-bold mb-2 dark:text-white group-hover:text-indigo-600 transition-colors"
-              >
-                🎲 랜덤 풀기
-              </h2>
-              <p class="text-slate-500 dark:text-slate-400 text-sm">
-                전체 문제 중 60문제를 무작위로 추출하여 풀이합니다.
-              </p>
-            </div>
-            <span
-              class="text-3xl opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all"
-              >→</span
-            >
-          </div>
+          <h2 class="text-xl font-bold mb-1 group-hover:text-indigo-600">
+            🎲 랜덤 풀기 (60문항)
+          </h2>
+          <p class="text-slate-500 text-sm">
+            전체 문제 중 무작위로 추출합니다.
+          </p>
         </button>
+        <button
+          id="start-wrong-btn"
+          class="group p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border-2 border-transparent hover:border-rose-500 transition-all text-left"
+        >
+          <h2 class="text-xl font-bold mb-1 group-hover:text-rose-600">
+            🔥 오답 정복
+          </h2>
+          <p id="wrong-count-text" class="text-slate-500 text-sm">
+            복습할 오답이 없습니다.
+          </p>
+        </button>
+      </div>
 
-        <button
-          onclick="startApp('wrong')"
-          class="group p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border-2 border-transparent hover:border-rose-500 transition-all text-left"
+      <div
+        class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 border border-slate-100 dark:border-slate-800"
+      >
+        <h3
+          class="font-black text-slate-400 text-xs uppercase tracking-widest mb-6 flex items-center gap-2"
         >
-          <div class="flex items-center justify-between">
-            <div>
-              <h2
-                class="text-xl font-bold mb-2 dark:text-white group-hover:text-rose-600 transition-colors"
-              >
-                🔥 오답 정복
-              </h2>
-              <p class="text-slate-500 dark:text-slate-400 text-sm">
-                기존에 틀렸던 문제들만 모아서 완벽하게 복습합니다.
-              </p>
-            </div>
-            <span
-              class="text-3xl opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all text-rose-500"
-              >→</span
-            >
-          </div>
-        </button>
+          <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+          실시간 명예의 전당
+        </h3>
+        <div id="leaderboard-list" class="space-y-3 text-sm">
+          <p class="text-center py-4 text-slate-400 italic">
+            데이터를 불러오는 중...
+          </p>
+        </div>
       </div>
     </div>
 
@@ -99,7 +122,7 @@
       <header class="mb-8 text-center relative">
         <button
           id="theme-toggle"
-          class="absolute right-0 top-0 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 text-slate-500"
+          class="absolute right-0 top-0 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
         >
           <svg
             id="theme-toggle-light-icon"
@@ -122,14 +145,12 @@
             ></path>
           </svg>
         </button>
-
         <h1
           id="exam-title"
-          class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-4 tracking-tight"
+          class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-4 tracking-tight font-black"
         >
           과목명
         </h1>
-
         <div class="flex items-center justify-between">
           <div
             class="bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700 text-sm font-bold"
@@ -141,17 +162,12 @@
             class="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700"
           >
             <span
-              class="text-slate-400 text-xs font-bold uppercase tracking-widest"
-              >Time</span
-            >
-            <span
               id="timer-display"
               class="font-mono text-lg font-bold text-rose-500"
               >60</span
             >
           </div>
         </div>
-
         <div
           class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-4 overflow-hidden"
         >
@@ -170,7 +186,7 @@
           <div class="mb-4">
             <span
               id="category-badge"
-              class="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 text-xs font-bold"
+              class="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest"
               >CATEGORY</span
             >
           </div>
@@ -208,6 +224,7 @@
         </div>
       </main>
     </div>
+
     <div
       id="result-modal"
       class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto py-10"
@@ -220,7 +237,7 @@
           id="result-icon"
           class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4"
         ></div>
-        <h2 id="result-status" class="text-2xl font-bold mb-2"></h2>
+        <h2 id="result-status" class="text-2xl font-bold mb-2 font-black"></h2>
         <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">
           최종 점수:
           <span
@@ -232,7 +249,7 @@
 
         <div
           id="subject-results"
-          class="text-left space-y-5 mb-8 max-h-[40vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700"
+          class="text-left space-y-5 mb-8 max-h-[40vh] overflow-y-auto pr-2"
         ></div>
 
         <button
@@ -244,6 +261,6 @@
       </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
   </body>
 </html>
