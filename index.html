@@ -6,21 +6,21 @@
     <title>pastly | 자격증 마스터</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = { darkMode: 'class' };
+      tailwind.config = { darkMode: "class" };
       if (
-        localStorage.getItem('theme') === 'dark' ||
-        (!('theme' in localStorage) &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
+        localStorage.getItem("theme") === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
       ) {
-        document.documentElement.classList.add('dark');
+        document.documentElement.classList.add("dark");
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove("dark");
       }
     </script>
     <style>
-      @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+      @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
       body {
-        font-family: 'Pretendard', sans-serif;
+        font-family: "Pretendard", sans-serif;
         transition: background-color 0.3s;
       }
       @keyframes timerBlink {
@@ -70,18 +70,39 @@
             id="auth-browser-hint"
             class="hidden text-sm text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2 mb-3 text-left leading-relaxed"
           ></p>
-          <div id="login-unit">
-            <button
-              id="btn-login"
-              class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold shadow-sm hover:bg-slate-50 transition-all"
-            >
-              <img
-                src="https://www.gstatic.com/images/branding/product/2x/gsa_48dp.png"
-                width="20"
+
+          <div
+            id="login-unit"
+            class="p-6 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 text-center"
+          >
+            <h2 class="text-xl font-black mb-4">로그인</h2>
+            <p class="text-sm text-slate-500 mb-6">
+              학번(또는 이름)과 비밀번호를 입력하세요.
+            </p>
+
+            <div class="space-y-3 mb-6">
+              <input
+                type="text"
+                id="login-id"
+                placeholder="학번 또는 아이디"
+                class="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:border-indigo-500 outline-none transition-all"
               />
-              <span>Google로 로그인하여 기록 저장</span>
+              <input
+                type="password"
+                id="login-pw"
+                placeholder="비밀번호"
+                class="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:border-indigo-500 outline-none transition-all"
+              />
+            </div>
+
+            <button
+              id="btn-login-submit"
+              class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg hover:bg-indigo-700 transition-all"
+            >
+              시작하기
             </button>
           </div>
+
           <div id="user-unit" class="hidden text-center">
             <img
               id="user-photo"
