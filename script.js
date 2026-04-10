@@ -112,34 +112,61 @@ onAuthStateChanged(auth, async (user) => {
 const logoutBtn = document.getElementById("btn-logout");
 if (logoutBtn) logoutBtn.onclick = () => signOut(auth);
 
-// --- 📊 데이터 저장 로직 (학번 기반) ---
+// --- 📊 데이터 저장 로직 보강 ---
 async function saveScoreToFirebase(score) {
   if (!currentUser) return;
+
+  // 1. 아이디 추출
   const userId = currentUser.email.split("@")[0];
   const userRef = doc(db, "users", currentUser.uid);
   const rankRef = doc(db, "rankings", currentUser.uid);
 
-  const userDoc = await getDoc(userRef);
-  const prevData = userDoc.exists() ? userDoc.data() : { totalCorrect: 0 };
+  try {
+    // 2. 전체 정답 수 누적 (LV업용)
+    const userDoc = await getDoc(userRef);
+    const prevData = userDoc.exists() ? userDoc.data() : { totalCorrect: 0 };
 
-  await setDoc(
-    userRef,
-    {
-      name: userId,
-      totalCorrect: (prevData.totalCorrect || 0) + correctAnswersCount,
-    },
-    { merge: true },
-  );
+    await setDoc(
+      userRef,
+      {
+        name: userId,
+        totalCorrect: (prevData.totalCorrect || 0) + correctAnswersCount,
+      },
+      { merge: true },
+    );
 
-  const rankDoc = await getDoc(rankRef);
-  if (!rankDoc.exists() || score > rankDoc.data().highScore) {
-    await setDoc(rankRef, {
-      name: userId,
-      photo: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
-      highScore: score,
-      updatedAt: new Date(),
-    });
+    // 3. 최고 점수 업데이트 (리더보드용)
+    const rankDoc = await getDoc(rankRef);
+    // 기존 기록이 없거나, 현재 점수가 더 높을 때만 업데이트
+    if (!rankDoc.exists() || score > (rankDoc.data().highScore || 0)) {
+      await setDoc(rankRef, {
+        name: userId,
+        photo: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+        highScore: score,
+        updatedAt: new Date(), // 최근 시간 기록
+      });
+      console.log("새로운 최고 기록 저장 완료!");
+    }
+  } catch (error) {
+    console.error("데이터 저장 중 오류 발생:", error);
   }
+}
+
+// --- 🎮 결과창의 "메인으로" 버튼 처리 ---
+// HTML에 있는 메인 이동 버튼의 id를 확인해주세요. (예: btn-go-main)
+const goMainBtn = document.getElementById("btn-go-main");
+if (goMainBtn) {
+  goMainBtn.onclick = () => {
+    // 결과 모달 닫고 메인 메뉴 보여주기
+    document.getElementById("result-modal").classList.add("hidden");
+    document.getElementById("quiz-container").classList.add("hidden");
+    document.getElementById("main-menu").classList.remove("hidden");
+
+    // 초기화
+    currentIndex = 0;
+    correctAnswersCount = 0;
+    subjectStats = {};
+  };
 }
 
 // --- 🎨 테마 및 퀴즈 기능 (기존 로직 유지) ---
