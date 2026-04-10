@@ -77,20 +77,20 @@
           >
             <h2 class="text-xl font-black mb-4">로그인</h2>
             <p class="text-sm text-slate-500 mb-6">
-              학번(또는 이름)과 비밀번호를 입력하세요.
+              닉네임과 비밀번호를 입력하세요.
             </p>
 
             <div class="space-y-3 mb-6">
               <input
                 type="text"
                 id="login-id"
-                placeholder="학번 또는 아이디"
+                placeholder="닉네임"
                 class="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:border-indigo-500 outline-none transition-all"
               />
               <input
                 type="password"
                 id="login-pw"
-                placeholder="비밀번호"
+                placeholder="비밀번호(6자리 이상)"
                 class="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:border-indigo-500 outline-none transition-all"
               />
             </div>
@@ -103,20 +103,83 @@
             </button>
           </div>
 
-          <div id="user-unit" class="hidden text-center">
-            <img
-              id="user-photo"
-              src=""
-              class="w-20 h-20 rounded-full border-4 border-indigo-500 mb-3 mx-auto shadow-lg"
-            />
-            <h3 id="user-name" class="font-black text-xl mb-1">사용자</h3>
-            <div class="flex items-center justify-center gap-2">
-              <span
-                id="user-level"
-                class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-full text-xs font-black uppercase"
-                >LV.1 디자인 인턴</span
+          <div
+            id="user-unit"
+            class="hidden p-4 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-inner gap-4"
+          >
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <label
+                for="avatar-input"
+                class="relative cursor-pointer group flex-none"
               >
+                <img
+                  id="user-photo"
+                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Squid&backgroundColor=00897b,00acc1,039be5,1976d2,3949ab,43a047,7cb342,c0ca33,fdd835,ffb300,f57c00,f4511e,6d4c41,757575,546e7a&eyes=happy,hearts,robotic,wink&mouth=smile"
+                  class="w-12 h-12 rounded-full border-2 border-indigo-200 object-cover group-hover:opacity-75 transition-opacity"
+                  alt="프로필"
+                />
+                <div
+                  class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                    ></path>
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                    ></path>
+                  </svg>
+                </div>
+              </label>
+              <input
+                type="file"
+                id="avatar-input"
+                accept="image/*"
+                class="hidden"
+              />
+
+              <div class="truncate">
+                <span
+                  id="user-name"
+                  class="font-black text-slate-800 dark:text-white block truncate"
+                ></span>
+                <span
+                  id="user-level"
+                  class="block text-xs text-slate-500 font-bold mt-0.5"
+                ></span>
+              </div>
             </div>
+
+            <button
+              id="btn-logout"
+              title="로그아웃"
+              class="flex-none p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl transition-all ml-2"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                ></path>
+              </svg>
+            </button>
           </div>
         </div>
       </header>
