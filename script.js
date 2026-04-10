@@ -1,13 +1,17 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
 import {
+  initializeAuth,
   getAuth,
+  browserLocalPersistence,
+  indexedDBLocalPersistence,
+  browserPopupRedirectResolver,
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   onAuthStateChanged,
   signOut,
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 import {
   getFirestore,
   doc,
@@ -18,7 +22,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
-} from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
 // --- ⚙️ 설정 ---
 const firebaseConfig = {
@@ -30,10 +34,66 @@ const firebaseConfig = {
   appId: '1:487960509557:web:1fb9c90a5a8f89df9ecc3c',
 };
 
+function isInAppBrowser() {
+  const ua = navigator.userAgent || '';
+  return /(FBAN|FBAV|Instagram|Line\/|KAKAOTALK|KakaoTalk|NAVER|DaumApps)/i.test(
+    ua,
+  );
+}
+
+/** iPhone·iPad·iPod Safari/Chrome(동일 WebKit). 데스크톱 모드 iPad는 MacIntel+터치로 판별 */
+function isIOSWebKit() {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/i.test(ua)) return true;
+  if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+  return false;
+}
+
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+
+let auth;
+try {
+  if (isIOSWebKit()) {
+    auth = initializeAuth(app, {
+      persistence: [browserLocalPersistence, indexedDBLocalPersistence],
+    });
+  } else {
+    auth = getAuth(app);
+  }
+} catch (e) {
+  console.warn('initializeAuth 실패, getAuth 사용:', e);
+  auth = getAuth(app);
+}
+
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+
+/**
+ * iOS: 팝업·다른 탭 혼선 방지 → 전체 페이지 리다이렉트만 사용.
+ * Android: 리다이렉트 우선.
+ * PC: 팝업 우선.
+ */
+function preferAuthRedirect() {
+  const ua = navigator.userAgent || '';
+  if (isIOSWebKit()) return true;
+  if (/Android/i.test(ua)) return true;
+  return false;
+}
+
+/** iOS WebKit은 리졸버와 함께 쓰면 새 탭으로 열리는 경우가 있어 2인자 호출 */
+function signInRedirectForPlatform() {
+  if (isIOSWebKit()) {
+    return signInWithRedirect(auth, provider);
+  }
+  return signInWithRedirect(auth, provider, browserPopupRedirectResolver);
+}
+
+function showAuthHint(message) {
+  const el = document.getElementById('auth-browser-hint');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove('hidden');
+}
 
 // --- 🧊 전역 변수 ---
 let allQuestions = [];
@@ -46,50 +106,144 @@ let subjectStats = {};
 let currentUser = null;
 const STORAGE_KEY = 'wrong_answers_ids';
 
-// --- 🔑 [핵심] 모바일 리다이렉트 결과 수신 로직 ---
-// 이 부분이 onAuthStateChanged 보다 위에 있어야 모바일에서 정상 작동합니다.
-getRedirectResult(auth)
-  .then((result) => {
-    if (result && result.user) {
-      console.log('모바일 로그인 성공:', result.user.displayName);
-      // 리다이렉트 성공 직후의 로직이 필요하다면 여기에 작성
+if (isInAppBrowser()) {
+  showAuthHint(
+    '카카오톡·인스타 등 앱 안 브라우저에서는 Google 로그인이 동작하지 않는 경우가 많습니다. 메뉴(⋮)에서 "Chrome으로 열기" 또는 "Safari에서 열기"를 선택한 뒤 다시 시도해 주세요.',
+  );
+}
+
+async function initAuthUi() {
+  try {
+    if (typeof auth.authStateReady === 'function') {
+      await auth.authStateReady();
     }
-  })
-  .catch((error) => {
-    console.error('리다이렉트 인증 에러:', error.code, error.message);
-  });
-
-// --- 🔑 인증 상태 감시 ---
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    document.getElementById('login-unit').classList.add('hidden');
-    document.getElementById('user-unit').classList.remove('hidden');
-    document.getElementById('user-name').innerText = user.displayName;
-    document.getElementById('user-photo').src = user.photoURL;
-
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (userDoc.exists()) updateUserUI(userDoc.data());
-  } else {
-    currentUser = null;
-    document.getElementById('login-unit').classList.remove('hidden');
-    document.getElementById('user-unit').classList.add('hidden');
+  } catch (_) {
+    /* no-op */
   }
-});
+  try {
+    await getRedirectResult(auth);
+  } catch (error) {
+    console.warn('getRedirectResult:', error?.code, error?.message);
+    const code = error?.code || '';
+    if (code === 'auth/unauthorized-domain') {
+      showAuthHint(
+        '이 사이트 도메인이 Firebase 인증에 등록되어 있지 않습니다. Firebase 콘솔 → Authentication → 설정 → 승인된 도메인을 확인해 주세요.',
+      );
+    } else if (
+      code === 'auth/operation-not-supported-in-this-environment' ||
+      code === 'auth/web-storage-unsupported'
+    ) {
+      showAuthHint(
+        '이 브라우저 환경에서는 로그인 저장소를 사용할 수 없습니다. Chrome 또는 Safari에서 페이지를 열어 주세요.',
+      );
+    }
+  }
 
-// 로그인 버튼 (기기별 분기)
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('login-unit').classList.add('hidden');
+      document.getElementById('user-unit').classList.remove('hidden');
+      document.getElementById('user-name').innerText = user.displayName;
+      document.getElementById('user-photo').src = user.photoURL;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) updateUserUI(userDoc.data());
+      } catch (err) {
+        console.warn('Firestore 사용자 문서 로드 실패(로그인은 유지):', err);
+      }
+    } else {
+      currentUser = null;
+      document.getElementById('login-unit').classList.remove('hidden');
+      document.getElementById('user-unit').classList.add('hidden');
+    }
+  });
+}
+
+initAuthUi();
+
+// 로그인 버튼 (모바일·iOS: 리다이렉트만 / PC: 팝업)
 const loginBtn = document.getElementById('btn-login');
 if (loginBtn) {
   loginBtn.onclick = async () => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const ua = navigator.userAgent || '';
+    const isAndroid = /Android/i.test(ua);
     try {
-      if (isMobile) {
-        await signInWithRedirect(auth, provider);
+      if (preferAuthRedirect()) {
+        try {
+          await signInRedirectForPlatform();
+        } catch (redirectErr) {
+          const rc = redirectErr?.code || '';
+          console.warn('signInWithRedirect 실패:', rc, redirectErr);
+          if (rc === 'auth/unauthorized-domain') {
+            showAuthHint(
+              '이 사이트 도메인이 Firebase 인증에 등록되어 있지 않습니다. Firebase 콘솔 → Authentication → 설정 → 승인된 도메인을 확인해 주세요.',
+            );
+            return;
+          }
+          if (
+            rc === 'auth/web-storage-unsupported' ||
+            rc === 'auth/operation-not-supported-in-this-environment'
+          ) {
+            showAuthHint(
+              '이 브라우저에서 로그인 저장을 사용할 수 없습니다. 시크릿 모드를 끄거나, 일반 Chrome/Safari에서 다시 시도해 주세요.',
+            );
+            return;
+          }
+          if (isAndroid) {
+            await signInWithPopup(
+              auth,
+              provider,
+              browserPopupRedirectResolver,
+            );
+            return;
+          }
+          if (isIOSWebKit()) {
+            showAuthHint(
+              'Google 페이지로 이동하지 못했습니다. 설정 → Safari → 고급에서 「모든 쿠키 차단」이 꺼져 있는지 확인한 뒤, 이 사이트의 저장 공간을 지우지 않았는지 확인해 주세요.',
+            );
+            return;
+          }
+          showAuthHint(
+            'Google 로그인 이동에 실패했습니다. 페이지를 새로고침한 뒤 다시 시도하거나, 잠시 후 시도해 주세요.',
+          );
+        }
       } else {
-        await signInWithPopup(auth, provider);
+        await signInWithPopup(
+          auth,
+          provider,
+          browserPopupRedirectResolver,
+        );
       }
     } catch (e) {
       console.error('Login 시도 중 에러:', e);
+      const code = e.code || '';
+      if (
+        code === 'auth/popup-blocked' ||
+        code === 'auth/popup-closed-by-user'
+      ) {
+        try {
+          await signInRedirectForPlatform();
+        } catch (e2) {
+          console.error(e2);
+          showAuthHint(
+            '팝업이 차단되었고 리다이렉트 로그인도 시작되지 않았습니다. 팝업을 허용하거나 주소창에 사이트 주소를 직접 입력해 접속해 주세요.',
+          );
+        }
+      } else if (code === 'auth/unauthorized-domain') {
+        showAuthHint(
+          'Firebase에 이 사이트 도메인이 등록되어 있는지 확인해 주세요.',
+        );
+      } else if (isIOSWebKit()) {
+        showAuthHint(
+          '아이폰에서 로그인이 끝나도 계정이 안 보이면, 설정 → Safari → 고급 → 「모든 쿠키 차단」이 켜져 있지 않은지, 「교차 사이트 추적 방지」를 잠시 끄고 다시 시도해 보세요. iOS Chrome도 Safari와 동일한 웹 엔진을 씁니다.',
+        );
+      } else {
+        showAuthHint(
+          '로그인을 완료할 수 없습니다. 네트워크를 확인하거나 잠시 후 다시 시도해 주세요.',
+        );
+      }
     }
   };
 }
