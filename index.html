@@ -1,12 +1,21 @@
 <!doctype html>
-<html lang="ko" class="antialiased">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pastly | 자격증 마스터</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Pastly - 필기시험 마스터</title>
+
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = { darkMode: "class" };
       if (
         localStorage.getItem("theme") === "dark" ||
         (!("theme" in localStorage) &&
@@ -16,230 +25,44 @@
       } else {
         document.documentElement.classList.remove("dark");
       }
+
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Pretendard", "sans-serif"] },
+          },
+        },
+      };
     </script>
     <style>
-      @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
       body {
         font-family: "Pretendard", sans-serif;
-        transition: background-color 0.3s;
+        -webkit-tap-highlight-color: transparent;
       }
-      @keyframes timerBlink {
-        0%,
-        49% {
-          opacity: 1;
-        }
-        50%,
-        100% {
-          opacity: 0.15;
-        }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
       }
-      .timer-blink {
-        animation: timerBlink 1s steps(1, end) infinite;
-      }
-      .hidden {
-        display: none !important;
-      }
-      .rank-item {
-        transition: all 0.3s ease;
+      * {
+        font-style: normal !important;
       }
     </style>
   </head>
   <body
-    class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 min-h-screen"
+    class="bg-white dark:bg-slate-950 transition-colors duration-300 font-sans"
   >
-    <div id="main-menu" class="max-w-2xl mx-auto px-4 py-8">
-      <header class="text-center mb-4">
-        <!-- <h1
-          class="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-6 tracking-tight"
-        >
-          pastly
-        </h1> -->
-        <h1 class="logo" style="width: 50%; margin: 0 auto 20px">
-          <img
-            src="./images/pastly_logo.png"
-            alt="pastly logo"
-            style="width: 100%; height: 100%; object-fit: cover"
-          />
-        </h1>
+    <div class="max-w-md mx-auto min-h-screen flex flex-col p-6">
+      <header class="flex justify-between items-center mb-10">
+        <img
+          src="images/pastly_logo.png"
+          alt="Pastly"
+          class="h-7 w-auto object-contain"
+        />
 
-        <div
-          id="auth-section"
-          class="flex flex-col items-center bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800"
-        >
-          <p
-            id="auth-browser-hint"
-            class="hidden text-sm text-amber-800 dark:text-amber-200 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2 mb-3 text-left leading-relaxed"
-          ></p>
-
-          <div
-            id="login-unit"
-            class="p-6 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 text-center"
-          >
-            <h2 class="text-xl font-black mb-4">로그인</h2>
-            <p class="text-sm text-slate-500 mb-6">
-              닉네임과 비밀번호를 입력하세요.
-            </p>
-
-            <div class="space-y-3 mb-6">
-              <input
-                type="text"
-                id="login-id"
-                placeholder="닉네임"
-                class="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:border-indigo-500 outline-none transition-all"
-              />
-              <input
-                type="password"
-                id="login-pw"
-                placeholder="비밀번호(6자리 이상)"
-                class="w-full p-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 focus:border-indigo-500 outline-none transition-all"
-              />
-            </div>
-
-            <button
-              id="btn-login-submit"
-              class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg hover:bg-indigo-700 transition-all"
-            >
-              시작하기
-            </button>
-          </div>
-
-          <div
-            id="user-unit"
-            class="hidden p-4 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-inner gap-4"
-          >
-            <div class="flex items-center gap-4 flex-1 min-w-0">
-              <label
-                for="avatar-input"
-                class="relative cursor-pointer group flex-none"
-              >
-                <img
-                  id="user-photo"
-                  src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Squid&backgroundColor=00897b,00acc1,039be5,1976d2,3949ab,43a047,7cb342,c0ca33,fdd835,ffb300,f57c00,f4511e,6d4c41,757575,546e7a&eyes=happy,hearts,robotic,wink&mouth=smile"
-                  class="w-12 h-12 rounded-full border-2 border-indigo-200 object-cover group-hover:opacity-75 transition-opacity"
-                  alt="프로필"
-                />
-                <div
-                  class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <svg
-                    class="w-5 h-5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                    ></path>
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                    ></path>
-                  </svg>
-                </div>
-              </label>
-              <input
-                type="file"
-                id="avatar-input"
-                accept="image/*"
-                class="hidden"
-              />
-
-              <div class="truncate">
-                <span
-                  id="user-name"
-                  class="font-black text-slate-800 dark:text-white block truncate"
-                ></span>
-                <span
-                  id="user-level"
-                  class="block text-xs text-slate-500 font-bold mt-0.5"
-                ></span>
-              </div>
-            </div>
-
-            <button
-              id="btn-logout"
-              title="로그아웃"
-              class="flex-none p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-2xl transition-all ml-2"
-            >
-              <svg
-                class="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                ></path>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <button
-          id="start-random-btn"
-          class="group p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border-2 border-transparent hover:border-indigo-500 transition-all text-left"
-        >
-          <h2 class="text-xl font-bold mb-1 group-hover:text-indigo-600">
-            🎲 랜덤 풀기
-          </h2>
-          <p class="text-slate-500 text-sm">60문제를 무작위로 풀기!</p>
-        </button>
-        <button
-          id="start-wrong-btn"
-          class="group p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border-2 border-transparent hover:border-rose-500 transition-all text-left"
-        >
-          <h2 class="text-xl font-bold mb-1 group-hover:text-rose-600">
-            🔥 오답 정복
-          </h2>
-          <p id="wrong-count-text" class="text-slate-500 text-sm">
-            복습할 오답이 없습니다.
-          </p>
-        </button>
-      </div>
-
-      <div
-        class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 border border-slate-100 dark:border-slate-800"
-      >
-        <h3
-          class="font-black text-slate-400 text-xs uppercase tracking-widest mb-6 flex items-center gap-2"
-        >
-          <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-          실시간 명예의 전당
-        </h3>
-        <div id="leaderboard-list" class="space-y-3 text-sm">
-          <p class="text-center py-4 text-slate-400 italic">
-            데이터를 불러오는 중...
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div id="quiz-container" class="hidden max-w-2xl mx-auto px-4 py-8">
-      <header class="mb-8 text-center relative">
         <button
           id="theme-toggle"
-          class="absolute right-0 top-0 p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700"
+          class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-500 transition-all active:scale-90"
         >
-          <svg
-            id="theme-toggle-light-icon"
-            class="hidden w-5 h-5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z"
-            ></path>
-          </svg>
           <svg
             id="theme-toggle-dark-icon"
             class="hidden w-5 h-5"
@@ -250,120 +73,263 @@
               d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
             ></path>
           </svg>
+          <svg
+            id="theme-toggle-light-icon"
+            class="hidden w-5 h-5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
         </button>
-        <h1
-          id="exam-title"
-          class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-4 tracking-tight font-black"
-        >
-          과목명
-        </h1>
-        <div class="flex items-center justify-between">
-          <div
-            class="bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700 text-sm font-bold"
-          >
-            문제 <span id="current-pos" class="text-indigo-600">0</span> /
-            <span id="total-pos">0</span>
-          </div>
-          <div
-            class="flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700"
-          >
-            <span aria-hidden="true" class="text-base leading-none">🕒</span>
-            <span
-              id="timer-display"
-              class="font-mono text-lg font-bold text-rose-500"
-              >60</span
-            >
-          </div>
-        </div>
-        <div
-          class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-4 overflow-hidden"
-        >
-          <div
-            id="progress-bar"
-            class="bg-indigo-500 h-full transition-all duration-300"
-            style="width: 0%"
-          ></div>
-        </div>
       </header>
 
-      <main id="quiz-area" class="space-y-6">
-        <div
-          class="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 md:p-8 border border-slate-50 dark:border-slate-800"
+      <div id="login-unit" class="mb-6 space-y-3">
+        <input
+          type="text"
+          id="login-id"
+          placeholder="닉네임"
+          class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 dark:text-white outline-none transition-all font-semibold"
+        />
+        <input
+          type="password"
+          id="login-pw"
+          placeholder="비밀번호"
+          class="w-full p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500 dark:text-white outline-none transition-all font-semibold"
+        />
+        <button
+          id="btn-login-submit"
+          class="w-full py-4 bg-indigo-600 text-white text-lg font-black rounded-2xl shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-95"
         >
-          <div class="mb-4">
-            <span
-              id="category-badge"
-              class="px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest"
-              >CATEGORY</span
-            >
-          </div>
-          <figure id="question-figure" class="hidden mb-6">
-            <img
-              id="question-image"
-              alt=""
-              class="mx-auto w-full max-h-[min(50vh,22rem)] rounded-2xl border border-slate-200 bg-slate-50 object-contain dark:border-slate-700 dark:bg-slate-800"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-          <p
-            id="question-text"
-            class="text-lg md:text-xl font-bold leading-relaxed mb-8 dark:text-slate-100"
+          로그인
+        </button>
+      </div>
+
+      <div
+        id="user-unit"
+        class="hidden p-5 bg-slate-50 dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center justify-between shadow-inner gap-4 mb-8"
+      >
+        <div class="flex items-center gap-4 flex-1 min-w-0">
+          <label
+            for="avatar-input"
+            class="relative cursor-pointer group flex-none"
           >
-            문제를 불러오는 중입니다...
-          </p>
-          <div id="options-list" class="grid grid-cols-1 gap-3"></div>
+            <img
+              id="user-photo"
+              src=""
+              class="w-14 h-14 rounded-full border-2 border-indigo-200 object-cover bg-white shadow-sm"
+            />
+          </label>
+          <input
+            type="file"
+            id="avatar-input"
+            accept="image/*"
+            class="hidden"
+          />
+          <div class="truncate">
+            <span
+              id="user-name"
+              class="font-black text-lg text-slate-800 dark:text-white block truncate"
+            ></span>
+            <span
+              id="user-level"
+              class="block text-xs text-indigo-500 dark:text-indigo-400 font-black mt-0.5 tracking-tight uppercase"
+            ></span>
+          </div>
+        </div>
+        <button
+          id="btn-logout"
+          title="로그아웃"
+          class="flex-none p-2.5 text-slate-400 hover:text-rose-500 rounded-2xl transition-all active:scale-90"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <main id="main-menu" class="flex-1">
+        <div class="grid grid-cols-2 gap-4 mb-12">
+          <button
+            id="start-random-btn"
+            class="aspect-square p-5 bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] border-2 border-blue-100 dark:border-blue-800 flex flex-col items-center justify-center text-center group transition-all active:scale-95"
+          >
+            <div
+              class="w-16 h-16 bg-white dark:bg-slate-800 rounded-[1.25rem] flex items-center justify-center text-4xl mb-4 shadow-sm group-hover:rotate-6 transition-transform"
+            >
+              ✏️
+            </div>
+            <span
+              class="block text-blue-800 dark:text-blue-300 font-black text-[1.05rem] tracking-tight"
+              >실전 모의고사</span
+            >
+          </button>
+
+          <button
+            id="start-wrong-btn"
+            class="aspect-square p-5 bg-rose-50 dark:bg-rose-900/20 rounded-[2.5rem] border-2 border-rose-100 dark:border-rose-800 flex flex-col items-center justify-center text-center group transition-all relative active:scale-95"
+          >
+            <div
+              class="w-16 h-16 bg-white dark:bg-slate-800 rounded-[1.25rem] flex items-center justify-center text-4xl mb-4 shadow-sm group-hover:-rotate-6 transition-transform"
+            >
+              💣
+            </div>
+            <span
+              class="block text-rose-800 dark:text-rose-300 font-black text-[1.05rem] tracking-tight"
+              >오답 복습하기</span
+            >
+            <span
+              id="wrong-count-badge"
+              class="absolute top-5 right-5 bg-rose-500 text-white px-3 py-1 rounded-full font-black text-xs shadow-md"
+              >0</span
+            >
+          </button>
         </div>
 
-        <div id="feedback" class="hidden">
-          <div class="rounded-3xl p-6 text-white shadow-lg">
-            <p
-              id="explanation-text"
-              class="text-sm md:text-base leading-relaxed mb-5 font-medium whitespace-pre-wrap"
-            ></p>
-            <button
-              id="next-btn"
-              class="w-full py-4 bg-white font-bold rounded-2xl transition-all active:scale-95 shadow-md"
+        <div class="pt-2">
+          <div class="flex items-center gap-2 mb-6 ml-1">
+            <span class="text-amber-400 text-xl">👑</span>
+            <h3
+              class="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tighter"
             >
-              다음 문제
-            </button>
+              명예의 전당
+            </h3>
+          </div>
+          <div id="leaderboard-list" class="space-y-4 mb-12"></div>
+        </div>
+
+        <footer
+          class="text-center py-6 text-[11px] text-slate-400 font-medium tracking-widest"
+        >
+          &copy; 巫堂先生
+        </footer>
+      </main>
+
+      <section id="quiz-container" class="hidden flex-1 flex flex-col">
+        <div class="flex justify-between items-center mb-8">
+          <span
+            id="category-badge"
+            class="px-4 py-1.5 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs font-black rounded-xl"
+          ></span>
+          <span
+            id="timer-display"
+            class="text-2xl font-black text-slate-700 dark:text-slate-200"
+            >60</span
+          >
+        </div>
+
+        <div class="mb-10">
+          <div
+            class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden"
+          >
+            <div
+              id="progress-bar"
+              class="h-full bg-indigo-500 transition-all duration-300"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div
+            class="flex justify-between text-xs font-black text-slate-400 mt-3 tracking-widest"
+          >
+            <span>PROGRESS</span>
+            <span
+              ><span id="current-pos" class="text-indigo-500">1</span> /
+              <span id="total-pos">60</span></span
+            >
           </div>
         </div>
-      </main>
+
+        <div
+          id="question-area"
+          class="flex-1 overflow-y-auto pr-1 no-scrollbar"
+        >
+          <h2
+            id="question-text"
+            class="text-xl font-bold text-slate-800 dark:text-white leading-relaxed mb-8"
+          ></h2>
+          <figure
+            id="question-figure"
+            class="hidden mb-8 rounded-[2rem] overflow-hidden border-4 border-slate-50 dark:border-slate-900 shadow-md"
+          >
+            <img
+              id="question-image"
+              src=""
+              class="w-full h-auto"
+              alt="이미지"
+            />
+          </figure>
+          <div id="options-list" class="space-y-4 mb-16"></div>
+        </div>
+      </section>
+    </div>
+
+    <div
+      id="feedback"
+      class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out hidden"
+    >
+      <div class="max-w-md mx-auto p-6">
+        <div class="rounded-[2.5rem] p-8 shadow-2xl space-y-6">
+          <p
+            id="explanation-text"
+            class="text-lg font-semibold leading-relaxed opacity-95 whitespace-pre-wrap"
+          ></p>
+          <button
+            id="next-btn"
+            class="w-full py-5 bg-white text-lg font-black rounded-2xl shadow-lg active:scale-95"
+          >
+            다음 문제
+          </button>
+        </div>
+      </div>
     </div>
 
     <div
       id="result-modal"
-      class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 overflow-y-auto py-10"
+      class="fixed inset-0 z-[60] bg-white dark:bg-slate-950 flex flex-col p-10 hidden overflow-y-auto no-scrollbar"
     >
-      <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
       <div
-        class="relative bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl p-8 text-center my-auto"
+        class="min-h-full flex flex-col justify-center items-center text-center"
       >
         <div
-          id="result-icon"
-          class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-4xl mb-4"
-        ></div>
-        <h2 id="result-status" class="text-2xl font-bold mb-2 font-black"></h2>
-        <p class="text-slate-500 dark:text-slate-400 mb-6 font-medium">
-          최종 점수:
+          class="w-24 h-24 bg-indigo-50 dark:bg-indigo-900/30 rounded-[2.5rem] flex items-center justify-center text-5xl mb-8 shadow-inner"
+        >
+          🏆
+        </div>
+        <h2
+          id="result-status"
+          class="text-2xl font-black text-slate-800 dark:text-white mb-2"
+        ></h2>
+        <div class="flex items-baseline gap-1 mb-12">
           <span
             id="final-score"
-            class="text-2xl font-bold text-slate-800 dark:text-white"
+            class="text-8xl font-black text-indigo-600 tracking-tighter"
             >0</span
-          >점
-        </p>
-
+          >
+          <span class="text-3xl font-black text-indigo-600">점</span>
+        </div>
         <div
           id="subject-results"
-          class="text-left space-y-5 mb-8 max-h-[40vh] overflow-y-auto pr-2"
+          class="w-full max-w-xs text-left mb-12 space-y-6 text-slate-700 dark:text-slate-300 font-bold"
         ></div>
-
         <button
           onclick="location.reload()"
-          class="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-colors"
+          class="w-full max-w-xs py-5 bg-indigo-600 text-white text-xl font-black rounded-2xl shadow-xl active:scale-95 transition-transform flex-none"
         >
-          메인으로 이동
+          확인
         </button>
       </div>
     </div>
