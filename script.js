@@ -41,8 +41,7 @@ let timeLeft = 60;
 let subjectStats = {};
 let currentUser = null;
 const STORAGE_KEY = "wrong_answers_ids";
-const DEFAULT_AVATAR =
-  "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Squid&backgroundColor=00897b,00acc1,039be5,1976d2,3949ab,43a047,7cb342,c0ca33,fdd835,ffb300,f57c00,f4511e,6d4c41,757575,546e7a&eyes=happy,hearts,robotic,wink&mouth=smile";
+const DEFAULT_AVATAR = "images/avata.png";
 
 const $ = (id) => document.getElementById(id);
 const getWrongIds = () => JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
