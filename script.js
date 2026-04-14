@@ -43,9 +43,58 @@ const STORAGE_KEY = "wrong_answers_ids";
 const DEFAULT_AVATAR = "images/avata.png";
 
 const $ = (id) => document.getElementById(id);
-const getWrongIds = () => JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-const setWrongIds = (ids) =>
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+let wrongAnswerIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+const getWrongIds = () => [...new Set(wrongAnswerIds)];
+const setLocalWrongIds = (ids) => {
+  wrongAnswerIds = [...new Set(ids)];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswerIds));
+};
+
+async function syncWrongIds(ids) {
+  setLocalWrongIds(ids);
+  if (!currentUser) return;
+  try {
+    await setDoc(
+      doc(db, "users", currentUser.uid),
+      { wrongAnswers: wrongAnswerIds },
+      { merge: true },
+    );
+  } catch (error) {
+    console.error("wrongAnswers sync error:", error);
+  }
+}
+
+async function loadWrongIdsFromFirebase() {
+  if (!currentUser) return getWrongIds();
+  try {
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    const remoteIds =
+      userDoc.exists() && Array.isArray(userDoc.data().wrongAnswers)
+        ? userDoc.data().wrongAnswers
+        : [];
+    const localIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const mergedIds = Array.from(new Set([...remoteIds, ...localIds]));
+    await syncWrongIds(mergedIds);
+    return mergedIds;
+  } catch (error) {
+    console.error("loadWrongIdsFromFirebase error:", error);
+    return getWrongIds();
+  }
+}
+
+async function ensureUserDoc(user) {
+  if (!user) return;
+  const userRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(userRef);
+  if (!userDoc.exists()) {
+    await setDoc(userRef, {
+      name: user.email.split("@")[0],
+      totalCorrect: 0,
+      wrongAnswers: [],
+    }, { merge: true });
+  }
+}
 
 // 아바타 업로드 함수
 async function uploadAvatar(file) {
@@ -221,12 +270,18 @@ document.getElementById("btn-login-submit").onclick = async () => {
       if (confirm(`${userId}님, 신규 회원으로 가입하시겠습니까?`)) {
         try {
           await createUserWithEmailAndPassword(auth, email, userPw);
-          await setDoc(doc(db, "rankings", auth.currentUser.uid), {
+          const uid = auth.currentUser.uid;
+          await setDoc(doc(db, "rankings", uid), {
             name: userId,
             photo: DEFAULT_AVATAR,
             highScore: 0,
             updatedAt: new Date(),
           });
+          await setDoc(doc(db, "users", uid), {
+            name: userId,
+            totalCorrect: 0,
+            wrongAnswers: [],
+          }, { merge: true });
           alert("회원가입이 완료되었습니다!");
         } catch (signupError) {
           if (signupError.code === "auth/weak-password") {
@@ -268,11 +323,15 @@ onAuthStateChanged(auth, async (user) => {
       }, 3000); // 3초 후 사라짐
     }
 
+    await ensureUserDoc(user);
+    await loadWrongIdsFromFirebase();
     updateWrongCountUI();
+
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if (userDoc.exists()) updateUserLevelUI(userDoc.data());
   } else {
     currentUser = null;
+    wrongAnswerIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     loginUnit.classList.remove("hidden");
     userUnit.classList.add("hidden");
   }
@@ -357,7 +416,7 @@ function startTimer() {
   }, 1000);
 }
 
-function checkAnswer(idx) {
+async function checkAnswer(idx) {
   clearInterval(timerInterval);
   const q = quizData[currentIndex];
   const isCorrect = idx === q.answer_index;
@@ -365,11 +424,11 @@ function checkAnswer(idx) {
   if (isCorrect) {
     correctAnswersCount++;
     subjectStats[q.category].correct++;
-    setWrongIds(ids.filter((id) => id !== q.id));
+    await syncWrongIds(ids.filter((id) => id !== q.id));
   } else {
     if (!ids.includes(q.id)) {
       ids.push(q.id);
-      setWrongIds(ids);
+      await syncWrongIds(ids);
     }
   }
   updateWrongCountUI();
