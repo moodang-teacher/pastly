@@ -46,6 +46,96 @@
       * {
         font-style: normal !important;
       }
+      @keyframes digitFlipUp {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(calc(-1 * var(--roll-distance)));
+        }
+      }
+      @keyframes digitFlipDown {
+        from {
+          transform: translateY(var(--start-offset));
+        }
+        to {
+          transform: translateY(
+            calc(var(--start-offset) + var(--roll-distance))
+          );
+        }
+      }
+      @keyframes progressGrowth {
+        0% {
+          width: 0 !important;
+        }
+        100% {
+          width: var(--target-width) !important;
+        }
+      }
+      .animate-digit-up {
+        animation: digitFlipUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards;
+      }
+      .animate-digit-down {
+        animation: digitFlipDown 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards;
+      }
+      .progress-bar-animate {
+        animation: progressGrowth 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+          forwards !important;
+      }
+      .digit-roller {
+        display: inline-flex;
+        position: relative;
+        width: 1em;
+        height: 1em;
+        overflow: hidden;
+        font-size: 5rem;
+        font-weight: 900;
+        vertical-align: middle;
+      }
+      .digit-roller + .digit-roller {
+        margin-left: -0.25em;
+      }
+      .digit-roller-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .avatar-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .avatar-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: rgba(0, 0, 0, 0.8);
+      }
+      .avatar-tooltip.show {
+        opacity: 1;
+        visibility: visible;
+      }
     </style>
   </head>
   <body
@@ -54,9 +144,10 @@
     <div class="max-w-md mx-auto min-h-screen flex flex-col p-6">
       <header class="flex justify-between items-center mb-10">
         <img
+          id="pastly-logo"
           src="images/pastly_logo.png"
           alt="Pastly"
-          class="h-7 w-auto object-contain"
+          class="h-7 w-auto object-contain cursor-pointer"
         />
 
         <button
@@ -123,6 +214,7 @@
               src=""
               class="w-14 h-14 rounded-full border-2 border-indigo-200 object-cover bg-white shadow-sm"
             />
+            <div class="avatar-tooltip">사진을 교체하려면 클릭!</div>
           </label>
           <input
             type="file"
@@ -208,12 +300,17 @@
             >
               명예의 전당
             </h3>
+            <span
+              class="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black rounded-lg"
+            >
+              TOP 7
+            </span>
           </div>
-          <div id="leaderboard-list" class="space-y-4 mb-12"></div>
+          <div id="leaderboard-list" class="space-y-4"></div>
         </div>
 
         <footer
-          class="text-center py-6 text-[11px] text-slate-400 font-medium tracking-widest"
+          class="text-center py-6 text-[12px] text-slate-400 font-medium tracking-widest"
         >
           &copy; 巫堂先生
         </footer>
@@ -227,7 +324,7 @@
           ></span>
           <span
             id="timer-display"
-            class="text-2xl font-black text-slate-700 dark:text-slate-200"
+            class="text-2xl font-black text-red-600 dark:text-red-400"
             >60</span
           >
         </div>
@@ -313,13 +410,14 @@
           id="result-status"
           class="text-2xl font-black text-slate-800 dark:text-white mb-2"
         ></h2>
-        <div class="flex items-baseline gap-1 mb-12">
-          <span
+        <div class="flex items-center justify-center gap-1 mb-12 h-32">
+          <div
             id="final-score"
-            class="text-8xl font-black text-indigo-600 tracking-tighter"
-            >0</span
+            class="text-indigo-600 tracking-tighter leading-none flex items-center justify-center"
           >
-          <span class="text-3xl font-black text-indigo-600">점</span>
+            0
+          </div>
+          <span class="text-5xl font-black text-indigo-600">점</span>
         </div>
         <div
           id="subject-results"
