@@ -209,7 +209,7 @@ function renderQuestion() {
   q.options.forEach((text, idx) => {
     const btn = document.createElement("button");
     btn.className =
-      "option-btn w-full text-left p-6 rounded-2xl border-2 border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all flex items-start gap-5 active:bg-slate-50 dark:active:bg-slate-900 shadow-sm";
+      "option-btn w-full text-left p-6 rounded-2xl border-2 border-slate-100 dark:border-slate-800 hover:border-indigo-500 transition-all flex items-center gap-5 active:bg-slate-50 dark:active:bg-slate-900 shadow-sm";
     btn.innerHTML = `<span class="flex-none w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-sm font-black flex items-center justify-center tracking-tighter">${idx + 1}</span><span class="dark:text-slate-200 font-bold text-base leading-snug">${text}</span>`;
     btn.onclick = () => checkAnswer(idx);
     optionsList.appendChild(btn);
@@ -359,10 +359,10 @@ async function saveScoreToFirebase(score) {
 
 function updateUserLevelUI(data) {
   const total = data.totalCorrect || 0;
-  const level = Math.floor(total / 50) + 1;
-  const titles = ["인턴", "주니어", "디자이너", "마스터", "조형의 신"];
+  const level = Math.floor(total / 100) + 1;
+  const titles = ["뉴비", "루키", "프로", "마스터", "레전드", "갓", "슈퍼갓"];
   document.getElementById("user-level").innerText =
-    `LV.${level} ${titles[Math.min(level - 1, 4)]}`;
+    `LV.${level} ${titles[Math.min(level - 1, 6)]}`;
 }
 
 onSnapshot(
