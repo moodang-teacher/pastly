@@ -17,12 +17,11 @@ import {
   limit,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDfwvasngxsyUNvoF_xDH1RnfTcx73JFsU",
   authDomain: "pastly-9eb9d.web.app",
   projectId: "pastly-9eb9d",
-  storageBucket: "pastly-9eb9d.firebasestorage.app",
+  storageBucket: "pastly-9eb9d.appspot.com",
   messagingSenderId: "487960509557",
   appId: "1:487960509557:web:1fb9c90a5a8f89df9ecc3c",
 };
@@ -47,6 +46,134 @@ const $ = (id) => document.getElementById(id);
 const getWrongIds = () => JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 const setWrongIds = (ids) =>
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+
+// 아바타 업로드 함수
+async function uploadAvatar(file) {
+  console.log("uploadAvatar 함수 호출됨, currentUser:", currentUser);
+  if (!currentUser) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  try {
+    // 파일 존재 체크
+    if (!file) {
+      alert("파일을 선택해주세요.");
+      return;
+    }
+
+    console.log("파일 검증 시작:", file.name, file.size, file.type);
+
+    // 파일 크기 체크 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("파일 크기가 5MB를 초과합니다. 더 작은 파일을 선택해주세요.");
+      return;
+    }
+
+    // 파일 타입 체크
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
+
+    // 로딩 표시
+    const userPhoto = document.getElementById("user-photo");
+    const originalSrc = userPhoto.src;
+    userPhoto.style.opacity = "0.5";
+    userPhoto.style.filter = "blur(2px)";
+
+    console.log("이미지 base64 변환 시작");
+
+    // 이미지 압축 및 base64 변환
+    const imageDataUrl = await compressImage(file);
+
+    console.log("Firestore에 이미지 데이터 저장 시작");
+
+    // Firestore에 base64 문자열 저장
+    await setDoc(
+      doc(db, "rankings", currentUser.uid),
+      {
+        photo: imageDataUrl,
+        updatedAt: new Date(),
+      },
+      { merge: true },
+    );
+    console.log("Firestore 저장 완료");
+
+    // UI 업데이트
+    userPhoto.src = imageDataUrl;
+    userPhoto.style.opacity = "1";
+    userPhoto.style.filter = "none";
+
+    alert("아바타가 성공적으로 변경되었습니다! 🎉");
+
+    // 입력 초기화
+    document.getElementById("avatar-input").value = "";
+  } catch (error) {
+    console.error("아바타 업로드 오류:", error);
+
+    // UI 복원
+    const userPhoto = document.getElementById("user-photo");
+    userPhoto.style.opacity = "1";
+    userPhoto.style.filter = "none";
+
+    // 사용자 친화적인 에러 메시지
+    let errorMessage = "아바타 변경 중 오류가 발생했습니다.";
+    if (
+      error.code === "permission-denied" ||
+      error.code === "storage/unauthorized"
+    ) {
+      errorMessage =
+        "접근 권한이 없습니다. 다시 로그인하거나 권한을 확인해주세요.";
+    } else if (error.code?.includes("network")) {
+      errorMessage = "네트워크 연결을 확인해주세요.";
+    }
+
+    alert(errorMessage + " 다시 시도해주세요.");
+  }
+}
+
+// 이미지 압축 함수 (모바일 최적화)
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      // 최대 크기 설정 (모바일 최적화)
+      const maxWidth = 300;
+      const maxHeight = 300;
+
+      let { width, height } = img;
+
+      // 비율 유지하며 크기 조정
+      if (width > height) {
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = (width * maxHeight) / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // 이미지 그리기
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // 압축된 이미지로 변환하여 base64 문자열로 반환
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      resolve(dataUrl);
+    };
+
+    img.src = URL.createObjectURL(file);
+  });
+}
 const createDigitRoller = (value, direction) => {
   const digits = direction === "down" ? "9876543210" : "0123456789";
   const startOffset = direction === "down" ? "--start-offset: -9em; " : "";
@@ -412,5 +539,33 @@ document.getElementById("pastly-logo").onclick = () => {
     }
   });
 });
+
+// 아바타 파일 선택 이벤트
+document
+  .getElementById("avatar-input")
+  .addEventListener("change", async (e) => {
+    console.log("아바타 파일 선택됨:", e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      // 간단한 테스트: 파일이 제대로 선택되는지 확인
+      console.log("파일 정보:", {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
+      // 사용자에게 확인
+      if (
+        confirm(
+          `선택한 파일: ${file.name}\n크기: ${Math.round(file.size / 1024)}KB\n업로드를 진행하시겠습니까?`,
+        )
+      ) {
+        uploadAvatar(file);
+      } else {
+        // 입력 초기화
+        e.target.value = "";
+      }
+    }
+  });
 
 initThemeIcon();
