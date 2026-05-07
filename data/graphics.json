@@ -77,7 +77,7 @@
       "category": "디자인 일반",
       "question_text": "디자인 조건 중 기능성과 실용성이 중요시되는 것은?",
       "options": ["합목적성", "경제성", "심미성", "독창성"],
-      "answer_index": 1,
+      "answer_index": 0,
       "explanation": "경제성(Economy)은 최소의 비용으로 최대의 효과(기능, 미 등)를 얻으려는 원리입니다.",
       "image": ""
     },
@@ -155,7 +155,7 @@
       ],
       "answer_index": 1,
       "explanation": "바우하우스는 1919년 발터 그로피우스가 독일 바이마르에 설립한 근대 디자인 교육 기관입니다.",
-      "image": "images/questions/bauhaus.jpg"
+      "image": ""
     },
 
     {
