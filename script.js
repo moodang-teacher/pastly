@@ -39,20 +39,15 @@ let timerInterval;
 let timeLeft = 60;
 let subjectStats = {};
 let currentUser = null;
-const STORAGE_KEY = "wrong_answers_ids";
 const DEFAULT_AVATAR = "images/avata.png";
 
 const $ = (id) => document.getElementById(id);
-let wrongAnswerIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let wrongAnswerIds = [];
 
 const getWrongIds = () => [...new Set(wrongAnswerIds)];
-const setLocalWrongIds = (ids) => {
-  wrongAnswerIds = [...new Set(ids)];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(wrongAnswerIds));
-};
 
 async function syncWrongIds(ids) {
-  setLocalWrongIds(ids);
+  wrongAnswerIds = [...new Set(ids)];
   if (!currentUser) return;
   try {
     await setDoc(
@@ -66,20 +61,18 @@ async function syncWrongIds(ids) {
 }
 
 async function loadWrongIdsFromFirebase() {
-  if (!currentUser) return getWrongIds();
+  if (!currentUser) return [];
   try {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
     const remoteIds =
       userDoc.exists() && Array.isArray(userDoc.data().wrongAnswers)
         ? userDoc.data().wrongAnswers
         : [];
-    const localIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    const mergedIds = Array.from(new Set([...remoteIds, ...localIds]));
-    await syncWrongIds(mergedIds);
-    return mergedIds;
+    wrongAnswerIds = [...new Set(remoteIds)];
+    return wrongAnswerIds;
   } catch (error) {
     console.error("loadWrongIdsFromFirebase error:", error);
-    return getWrongIds();
+    return [];
   }
 }
 
@@ -88,11 +81,15 @@ async function ensureUserDoc(user) {
   const userRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(userRef);
   if (!userDoc.exists()) {
-    await setDoc(userRef, {
-      name: user.email.split("@")[0],
-      totalCorrect: 0,
-      wrongAnswers: [],
-    }, { merge: true });
+    await setDoc(
+      userRef,
+      {
+        name: user.email.split("@")[0],
+        totalCorrect: 0,
+        wrongAnswers: [],
+      },
+      { merge: true },
+    );
   }
 }
 
@@ -277,11 +274,15 @@ document.getElementById("btn-login-submit").onclick = async () => {
             highScore: 0,
             updatedAt: new Date(),
           });
-          await setDoc(doc(db, "users", uid), {
-            name: userId,
-            totalCorrect: 0,
-            wrongAnswers: [],
-          }, { merge: true });
+          await setDoc(
+            doc(db, "users", uid),
+            {
+              name: userId,
+              totalCorrect: 0,
+              wrongAnswers: [],
+            },
+            { merge: true },
+          );
           alert("회원가입이 완료되었습니다!");
         } catch (signupError) {
           if (signupError.code === "auth/weak-password") {
@@ -331,7 +332,7 @@ onAuthStateChanged(auth, async (user) => {
     if (userDoc.exists()) updateUserLevelUI(userDoc.data());
   } else {
     currentUser = null;
-    wrongAnswerIds = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    wrongAnswerIds = [];
     loginUnit.classList.remove("hidden");
     userUnit.classList.add("hidden");
   }
@@ -576,8 +577,14 @@ function shuffleArray(arr) {
   }
   return arr;
 }
-document.getElementById("start-random-btn").onclick = () => startApp("random");
-document.getElementById("start-wrong-btn").onclick = () => startApp("wrong");
+document.getElementById("start-random-btn").onclick = () => {
+  if (!currentUser) return alert("로그인 후 이용할 수 있어요!");
+  startApp("random");
+};
+document.getElementById("start-wrong-btn").onclick = () => {
+  if (!currentUser) return alert("로그인 후 이용할 수 있어요!");
+  startApp("wrong");
+};
 document.getElementById("next-btn").onclick = () => {
   currentIndex++;
   if (currentIndex < quizData.length) renderQuestion();
