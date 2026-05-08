@@ -171,6 +171,16 @@
       "answer_index": 2,
       "explanation": "굿 디자인은 기능과 형태가 조화를 이루어 사용자에게 편리함과 만족감을 제공하는 디자인이다.",
       "image": ""
+    },
+
+    {
+      "id": "MOODANG_01",
+      "category": "디자인 일반 ",
+      "question_text": "다음 보기와 같은 디자인을 무엇이라 하는가?",
+      "options": ["타이포그래피", "레터링", "일러스트레이션", "워드마크"],
+      "answer_index": 1,
+      "explanation": "타이포그래피가 기존의 서체를 이용하는 것과는 달리 레터링은 새로운 글자를 제작하는 것이다.",
+      "image": "images/question/MOODANG_001.png"
     }
   ]
 }
