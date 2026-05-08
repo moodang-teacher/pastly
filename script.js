@@ -42,6 +42,7 @@ let currentUser = null;
 const DEFAULT_AVATAR = "images/avata.png";
 
 const $ = (id) => document.getElementById(id);
+localStorage.removeItem("wrong_answers_ids");
 let wrongAnswerIds = [];
 
 const getWrongIds = () => [...new Set(wrongAnswerIds)];
