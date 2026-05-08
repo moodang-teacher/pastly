@@ -77,23 +77,6 @@ async function loadWrongIdsFromFirebase() {
   }
 }
 
-async function ensureUserDoc(user) {
-  if (!user) return;
-  const userRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(userRef);
-  if (!userDoc.exists()) {
-    await setDoc(
-      userRef,
-      {
-        name: user.email.split("@")[0],
-        totalCorrect: 0,
-        wrongAnswers: [],
-      },
-      { merge: true },
-    );
-  }
-}
-
 // 아바타 업로드 함수
 async function uploadAvatar(file) {
   console.log("uploadAvatar 함수 호출됨, currentUser:", currentUser);
@@ -325,7 +308,6 @@ onAuthStateChanged(auth, async (user) => {
       }, 3000); // 3초 후 사라짐
     }
 
-    await ensureUserDoc(user);
     await loadWrongIdsFromFirebase();
     updateWrongCountUI();
 
