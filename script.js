@@ -18,12 +18,13 @@ import {
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 const firebaseConfig = {
-  apiKey: "AIzaSyDfwvasngxsyUNvoF_xDH1RnfTcx73JFsU",
-  authDomain: "pastly-9eb9d.web.app",
-  projectId: "pastly-9eb9d",
-  storageBucket: "pastly-9eb9d.appspot.com",
-  messagingSenderId: "487960509557",
-  appId: "1:487960509557:web:1fb9c90a5a8f89df9ecc3c",
+  apiKey: "AIzaSyAr2W3-TFZD6TSMqnMv4wbPoWYqVcTxLcM",
+  authDomain: "pastly-dev.firebaseapp.com",
+  projectId: "pastly-dev",
+  storageBucket: "pastly-dev.firebasestorage.app",
+  messagingSenderId: "341473328414",
+  appId: "1:341473328414:web:ac5dddaf3089b69cbe1d0f",
+  measurementId: "G-16BMKKXFYW",
 };
 
 const app = initializeApp(firebaseConfig);
