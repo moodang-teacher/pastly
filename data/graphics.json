@@ -1604,7 +1604,8 @@
         "다각형에 외접하는 원 그리기"
       ],
       "answer_index": 1,
-      "explanation": "제시된 도판은 주어진 원 안에 정해진 변을 가진 정다각형을 그리는 원의 내접 작도법이다."
+      "explanation": "제시된 도판은 주어진 원 안에 정해진 변을 가진 정다각형을 그리는 원의 내접 작도법이다.",
+      "image": "images/question/five_star.gif"
     },
     {
       "id": "LKU0508_026",
