@@ -403,6 +403,13 @@ function startTimer() {
 
 async function checkAnswer(idx) {
   clearInterval(timerInterval);
+
+  // 선택지 추가 클릭 방지
+  document.querySelectorAll(".option-btn").forEach((btn) => {
+    btn.disabled = true;
+    btn.style.pointerEvents = "none";
+  });
+  
   const q = quizData[currentIndex];
   const isCorrect = idx === q.answer_index;
   const ids = getWrongIds();
