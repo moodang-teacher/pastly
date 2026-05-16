@@ -409,7 +409,7 @@ async function checkAnswer(idx) {
     btn.disabled = true;
     btn.style.pointerEvents = "none";
   });
-  
+
   const q = quizData[currentIndex];
   const isCorrect = idx === q.answer_index;
   const ids = getWrongIds();
@@ -542,21 +542,68 @@ function updateUserLevelUI(data) {
     `LV.${level} ${titles[Math.min(level - 1, 6)]}`;
 }
 
+function getLevelText(score) {
+  if (score >= 95) return "🏆 MASTER";
+  if (score >= 85) return "🔥 DIAMOND";
+  if (score >= 75) return "💎 PLATINUM";
+  if (score >= 65) return "⭐ GOLD";
+  if (score >= 50) return "🥈 SILVER";
+  return "🌱 BRONZE";
+}
+
 onSnapshot(
   query(collection(db, "rankings"), orderBy("highScore", "desc"), limit(7)),
   (snap) => {
     const list = document.getElementById("leaderboard-list");
+
     if (!list) return;
+
     list.innerHTML = "";
-    snap.forEach((rankingDoc) => {
+
+    snap.forEach((rankingDoc, index) => {
       const d = rankingDoc.data();
-      list.innerHTML += `<div class="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all shadow-sm">
-      <div class="flex items-center gap-4">
-        <img src="${d.photo || DEFAULT_AVATAR}" class="w-10 h-10 rounded-full border border-indigo-200 object-cover bg-white shadow-sm">
-        <span class="font-bold text-[15px] text-slate-800 dark:text-white">${d.name}</span>
-      </div>
-      <span class="text-indigo-600 dark:text-indigo-400 font-black text-base">${d.highScore}점</span>
-    </div>`;
+
+      // 순위 아이콘
+      let rankBadge = "🏅";
+
+      if (index === 0) rankBadge = "🥇";
+      else if (index === 1) rankBadge = "🥈";
+      else if (index === 2) rankBadge = "🥉";
+
+      list.innerHTML += `
+        <div class="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all shadow-sm">
+
+          <div class="flex items-center gap-4">
+
+            <div class="text-2xl">
+              ${rankBadge}
+            </div>
+
+            <img 
+              src="${d.photo || DEFAULT_AVATAR}" 
+              class="w-10 h-10 rounded-full border border-indigo-200 object-cover bg-white shadow-sm"
+            >
+
+            <div class="flex flex-col">
+
+              <span class="font-bold text-[15px] text-slate-800 dark:text-white">
+                ${d.name}
+              </span>
+
+              <span class="text-xs font-bold text-indigo-500 dark:text-indigo-300">
+                ${getLevelText(d.highScore)}
+              </span>
+
+            </div>
+
+          </div>
+
+          <span class="text-indigo-600 dark:text-indigo-400 font-black text-base">
+            ${d.highScore}점
+          </span>
+
+        </div>
+      `;
     });
   },
 );
