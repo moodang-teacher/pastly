@@ -11,6 +11,9 @@ import {
   doc,
   setDoc,
   getDoc,
+  getDocs,
+  deleteDoc,
+  writeBatch,
   collection,
   query,
   orderBy,
@@ -312,11 +315,21 @@ onAuthStateChanged(auth, async (user) => {
     updateWrongCountUI();
 
     if (rankDoc.exists()) updateUserLevelUI(rankDoc.data());
+
+    // 관리자(무당선생)일 때만 초기화 버튼 표시
+    const ADMIN_UID = "SfX95kTrUmWHx892MLMo9btqgbi2";
+    const resetBtn = document.getElementById("btn-reset");
+    if (user.uid === ADMIN_UID) {
+      resetBtn.classList.remove("hidden");
+    } else {
+      resetBtn.classList.add("hidden");
+    }
   } else {
     currentUser = null;
     wrongAnswerIds = [];
     loginUnit.classList.remove("hidden");
     userUnit.classList.add("hidden");
+    document.getElementById("btn-reset").classList.add("hidden");
   }
 });
 
@@ -324,11 +337,42 @@ document.getElementById("btn-logout").onclick = () => {
   if (confirm("로그아웃 하시겠습니까?")) signOut(auth);
 };
 
+document.getElementById("btn-reset").onclick = async () => {
+  if (!confirm("⚠️ 전체 랭킹과 모든 유저의 오답/점수 데이터를 초기화합니다.\n정말 진행하시겠습니까?")) return;
+  if (!confirm("정말요? 되돌릴 수 없습니다!")) return;
+
+  try {
+    const batch = writeBatch(db);
+
+    // rankings 전체 삭제
+    const rankingsSnap = await getDocs(collection(db, "rankings"));
+    rankingsSnap.forEach((d) => batch.delete(d.ref));
+
+    // users 전체 totalCorrect, wrongAnswers 초기화
+    const usersSnap = await getDocs(collection(db, "users"));
+    usersSnap.forEach((d) => {
+      batch.update(d.ref, { totalCorrect: 0, wrongAnswers: [] });
+    });
+
+    await batch.commit();
+
+    // 현재 유저 UI 초기화
+    wrongAnswerIds = [];
+    updateWrongCountUI();
+    document.getElementById("user-level").innerText = "🪨 STONE";
+
+    alert("✅ 초기화 완료!");
+  } catch (e) {
+    console.error(e);
+    alert("❌ 초기화 실패: " + e.message);
+  }
+};
+
 async function startApp(mode) {
   currentMode = mode;
   try {
-    const response = await fetch("./data/graphics.json");
-    // const response = await fetch("./data/exam.json");
+    // const response = await fetch("./data/graphics.json");
+    const response = await fetch("./data/exam.json");
     const data = await response.json();
     allQuestions = data.questions;
     const ids = getWrongIds();
@@ -571,18 +615,38 @@ async function saveScoreToFirebase(score) {
   }
   const userRef = doc(db, "users", currentUser.uid);
   const uDoc = await getDoc(userRef);
+  const prevCorrect = (uDoc.exists() ? uDoc.data().totalCorrect : 0) || 0;
+  const newCorrect = prevCorrect + correctAnswersCount;
   await setDoc(
     userRef,
-    {
-      name,
-      totalCorrect:
-        ((uDoc.exists() ? uDoc.data().totalCorrect : 0) || 0) +
-        correctAnswersCount,
-    },
+    { name, totalCorrect: newCorrect },
     { merge: true },
   );
+
+  // 시험 완료 후 레벨 UI 즉시 갱신
+  document.getElementById("user-level").innerText = getLevelByCorrect(newCorrect);
 }
 
+// 누적 맞힌 문제 수 기반 레벨 (프로필 표시용)
+function getLevelByCorrect(total) {
+  if (total >= 3500) return "⚡ LEGEND";
+  if (total >= 2800) return "👑 GRANDMASTER";
+  if (total >= 2200) return "🏆 MASTER";
+  if (total >= 1700) return "💫 EXPERT";
+  if (total >= 1300) return "🔥 DIAMOND";
+  if (total >= 1000) return "💎 PLATINUM I";
+  if (total >= 800)  return "💎 PLATINUM II";
+  if (total >= 600)  return "⭐ GOLD I";
+  if (total >= 450)  return "⭐ GOLD II";
+  if (total >= 300)  return "🥈 SILVER I";
+  if (total >= 200)  return "🥈 SILVER II";
+  if (total >= 120)  return "🥉 BRONZE I";
+  if (total >= 60)   return "🥉 BRONZE II";
+  if (total >= 30)   return "🌱 IRON";
+  return "🪨 STONE";
+}
+
+// 최고 점수 기반 칭호 (명예의 전당용)
 function getLevelText(score) {
   if (score >= 100) return "⚡ LEGEND";
   if (score >= 98)  return "👑 GRANDMASTER";
@@ -602,8 +666,8 @@ function getLevelText(score) {
 }
 
 function updateUserLevelUI(data) {
-  const score = data.highScore || 0;
-  document.getElementById("user-level").innerText = getLevelText(score);
+  const total = data.totalCorrect || 0;
+  document.getElementById("user-level").innerText = getLevelByCorrect(total);
 }
 
 onSnapshot(
