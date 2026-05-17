@@ -328,8 +328,8 @@ document.getElementById("btn-logout").onclick = () => {
 async function startApp(mode) {
   currentMode = mode;
   try {
-    const response = await fetch("./data/graphics.json");
-    // const response = await fetch("./data/exam.json");
+    // const response = await fetch("./data/graphics.json");
+    const response = await fetch("./data/exam.json");
     const data = await response.json();
     allQuestions = data.questions;
     const ids = getWrongIds();
