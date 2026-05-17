@@ -327,8 +327,8 @@ document.getElementById("btn-logout").onclick = () => {
 async function startApp(mode) {
   currentMode = mode;
   try {
-    // const response = await fetch("./data/graphics.json");
-    const response = await fetch("./data/exam.json");
+    const response = await fetch("./data/graphics.json");
+    // const response = await fetch("./data/exam.json");
     const data = await response.json();
     allQuestions = data.questions;
     const ids = getWrongIds();
@@ -685,10 +685,17 @@ document.getElementById("next-btn").onclick = () => {
 };
 
 document.getElementById("pastly-logo").onclick = () => {
+  // 타이머 및 퀴즈 상태 초기화
+  clearInterval(timerInterval);
+  timerInterval = null;
+  quizData = [];
+  currentIndex = 0;
+
   document.getElementById("main-menu").classList.remove("hidden");
   document.getElementById("quiz-container").classList.add("hidden");
   document.getElementById("result-modal").classList.add("hidden");
   document.getElementById("feedback").classList.add("hidden");
+  document.getElementById("feedback").classList.replace("translate-y-0", "translate-y-full");
 };
 
 ["login-id", "login-pw"].forEach((inputId) => {
