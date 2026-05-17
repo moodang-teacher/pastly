@@ -534,21 +534,27 @@ async function saveScoreToFirebase(score) {
   );
 }
 
-function updateUserLevelUI(data) {
-  const total = data.totalCorrect || 0;
-  const level = Math.floor(total / 100) + 1;
-  const titles = ["뉴비", "루키", "프로", "마스터", "레전드", "갓", "슈퍼갓"];
-  document.getElementById("user-level").innerText =
-    `LV.${level} ${titles[Math.min(level - 1, 6)]}`;
+function getLevelText(score) {
+  if (score >= 100) return "⚡ LEGEND";
+  if (score >= 98)  return "👑 GRANDMASTER";
+  if (score >= 95)  return "🏆 MASTER";
+  if (score >= 92)  return "💫 EXPERT";
+  if (score >= 88)  return "🔥 DIAMOND";
+  if (score >= 84)  return "💎 PLATINUM I";
+  if (score >= 80)  return "💎 PLATINUM II";
+  if (score >= 76)  return "⭐ GOLD I";
+  if (score >= 72)  return "⭐ GOLD II";
+  if (score >= 68)  return "🥈 SILVER I";
+  if (score >= 64)  return "🥈 SILVER II";
+  if (score >= 58)  return "🥉 BRONZE I";
+  if (score >= 50)  return "🥉 BRONZE II";
+  if (score >= 40)  return "🌱 IRON";
+  return "🪨 STONE";
 }
 
-function getLevelText(score) {
-  if (score >= 95) return "🏆 MASTER";
-  if (score >= 85) return "🔥 DIAMOND";
-  if (score >= 75) return "💎 PLATINUM";
-  if (score >= 65) return "⭐ GOLD";
-  if (score >= 50) return "🥈 SILVER";
-  return "🌱 BRONZE";
+function updateUserLevelUI(data) {
+  const score = data.highScore || 0;
+  document.getElementById("user-level").innerText = getLevelText(score);
 }
 
 onSnapshot(
