@@ -404,14 +404,27 @@ function startTimer() {
 async function checkAnswer(idx) {
   clearInterval(timerInterval);
 
-  // 선택지 추가 클릭 방지
-  document.querySelectorAll(".option-btn").forEach((btn) => {
-    btn.disabled = true;
-    btn.style.pointerEvents = "none";
-  });
-
   const q = quizData[currentIndex];
   const isCorrect = idx === q.answer_index;
+
+  // 선택지 하이라이트 처리
+  document.querySelectorAll(".option-btn").forEach((btn, btnIdx) => {
+    btn.disabled = true;
+    btn.style.pointerEvents = "none";
+    const badge = btn.querySelector("span:first-child");
+    if (btnIdx === q.answer_index) {
+      // 정답 버튼 → 초록
+      btn.className = "option-btn w-full text-left p-6 rounded-2xl border-2 border-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 transition-all flex items-center gap-5 shadow-sm";
+      badge.className = "flex-none w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-black flex items-center justify-center tracking-tighter";
+    } else if (btnIdx === idx && !isCorrect) {
+      // 내가 선택한 오답 버튼 → 빨간색
+      btn.className = "option-btn w-full text-left p-6 rounded-2xl border-2 border-rose-400 bg-rose-50 dark:bg-rose-900/30 transition-all flex items-center gap-5 shadow-sm";
+      badge.className = "flex-none w-8 h-8 rounded-full bg-rose-500 text-white text-sm font-black flex items-center justify-center tracking-tighter";
+    } else {
+      // 나머지 버튼 → 흐리게
+      btn.className = "option-btn w-full text-left p-6 rounded-2xl border-2 border-slate-100 dark:border-slate-800 opacity-40 transition-all flex items-center gap-5 shadow-sm";
+    }
+  });
   const ids = getWrongIds();
   if (isCorrect) {
     correctAnswersCount++;
