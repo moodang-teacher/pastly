@@ -437,22 +437,27 @@
 
     <script type="module" src="script.js"></script>
     <script>
-      // Service Worker 등록 - PWA 자동 업데이트
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').then((reg) => {
-          // 새 버전 감지 시 즉시 적용
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // 새 버전 설치 완료 → 자동 새로고침
-                navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // SW 등록 - updateViaCache: 'none' 으로 SW 파일 자체를 브라우저가 캐싱하지 않음
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+          .then((reg) => {
+            // 앱 실행 시마다 새 버전 체크
+            reg.update();
+
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'activated') {
+                  // 새 SW 활성화 완료 → 페이지 새로고침
                   window.location.reload();
-                });
-                newWorker.postMessage({ action: 'skipWaiting' });
-              }
+                }
+              });
             });
           });
+
+        // controllerchange: SW가 교체되면 즉시 새로고침
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
         });
       }
     </script>
