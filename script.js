@@ -328,8 +328,8 @@ document.getElementById("btn-logout").onclick = () => {
 async function startApp(mode) {
   currentMode = mode;
   try {
-    // const response = await fetch("./data/graphics.json");
-    const response = await fetch("./data/exam.json");
+    const response = await fetch("./data/graphics.json");
+    // const response = await fetch("./data/exam.json");
     const data = await response.json();
     allQuestions = data.questions;
     const ids = getWrongIds();
@@ -482,7 +482,7 @@ function showResult() {
           <span>${per}% (${stat.correct}/${stat.total})</span>
         </div>
         <div class="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden shadow-inner">
-          <div id="${progressBarId}" class="bg-indigo-500 h-full shadow-lg" style="width: 0%; --target-width: ${per}%"></div>
+          <div id="${progressBarId}" class="bg-indigo-500 h-full shadow-lg" style="width: 0%" data-target="${per}"></div>
         </div>
       </div>
     `,
@@ -491,11 +491,13 @@ function showResult() {
 
   setTimeout(() => {
     document.querySelectorAll("[id^='progress-bar-']").forEach((bar, idx) => {
+      const target = bar.getAttribute("data-target");
       setTimeout(() => {
-        bar.classList.add("progress-bar-animate");
-      }, idx * 100);
+        bar.style.transition = "width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+        bar.style.width = target + "%";
+      }, 200 + idx * 100);
     });
-  }, 200);
+  }, 50);
 
   if (currentMode === "random") saveScoreToFirebase(score);
 }
