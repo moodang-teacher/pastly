@@ -311,8 +311,7 @@ onAuthStateChanged(auth, async (user) => {
     await loadWrongIdsFromFirebase();
     updateWrongCountUI();
 
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) updateUserLevelUI(userDoc.data());
+    if (rankDoc.exists()) updateUserLevelUI(rankDoc.data());
   } else {
     currentUser = null;
     wrongAnswerIds = [];
@@ -328,8 +327,8 @@ document.getElementById("btn-logout").onclick = () => {
 async function startApp(mode) {
   currentMode = mode;
   try {
-    const response = await fetch("./data/graphics.json");
-    // const response = await fetch("./data/exam.json");
+    // const response = await fetch("./data/graphics.json");
+    const response = await fetch("./data/exam.json");
     const data = await response.json();
     allQuestions = data.questions;
     const ids = getWrongIds();
@@ -438,18 +437,36 @@ async function checkAnswer(idx) {
   }
   updateWrongCountUI();
   const fb = document.getElementById("feedback");
-  fb.classList.remove("hidden");
-  setTimeout(
-    () => fb.classList.replace("translate-y-full", "translate-y-0"),
-    10,
-  );
-  fb.querySelector("div").className =
-    `rounded-[3rem] p-10 text-white shadow-2xl ${isCorrect ? "bg-emerald-600" : "bg-rose-600"}`;
+  const fbBody = document.getElementById("feedback-body");
+  let isFeedbackCollapsed = false;
+
+  // 색상 적용
+  fbBody.className = `rounded-[2.5rem] p-8 shadow-2xl space-y-6 transition-all duration-300 overflow-hidden ${isCorrect ? "bg-emerald-600" : "bg-rose-600"}`;
   document.getElementById("next-btn").className =
-    `w-full py-6 bg-white font-black rounded-2xl shadow-md ${isCorrect ? "text-emerald-600" : "text-rose-600"}`;
+    `w-full py-5 bg-white font-black rounded-2xl shadow-md ${isCorrect ? "text-emerald-600" : "text-rose-600"}`;
   document.getElementById("explanation-text").innerText = isCorrect
     ? `정답입니다!\n\n${q.explanation}`
     : `정답은 ${q.answer_index + 1}번입니다.\n\n${q.explanation}`;
+
+  // 모달 표시
+  fb.classList.remove("hidden");
+  setTimeout(() => fb.classList.replace("translate-y-full", "translate-y-0"), 10);
+
+  // 접기/펼치기
+  document.getElementById("feedback-toggle").onclick = () => {
+    isFeedbackCollapsed = !isFeedbackCollapsed;
+    if (isFeedbackCollapsed) {
+      fbBody.style.maxHeight = "0px";
+      fbBody.style.paddingTop = "0";
+      fbBody.style.paddingBottom = "0";
+      fbBody.style.opacity = "0";
+    } else {
+      fbBody.style.maxHeight = "";
+      fbBody.style.paddingTop = "";
+      fbBody.style.paddingBottom = "";
+      fbBody.style.opacity = "1";
+    }
+  };
 }
 
 function showResult() {

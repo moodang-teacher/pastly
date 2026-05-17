@@ -375,9 +375,13 @@
       </section>
     </div>
 
-    <div id="feedback" class="fixed inset-0 z-50 flex items-end transform translate-y-full transition-transform duration-300 ease-out hidden">
-      <div class="max-w-md mx-auto p-6">
-        <div class="rounded-[2.5rem] p-8 shadow-2xl space-y-6">
+    <div id="feedback" class="fixed inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform duration-300 ease-out hidden">
+      <div class="max-w-md mx-auto px-4 pb-4">
+        <!-- 접기 핸들 -->
+        <button id="feedback-toggle" class="w-full flex justify-center py-3 group" aria-label="접기/펼치기">
+          <div class="w-12 h-1.5 bg-white/40 rounded-full group-active:bg-white/70 transition-colors"></div>
+        </button>
+        <div id="feedback-body" class="rounded-[2.5rem] p-8 shadow-2xl space-y-6 transition-all duration-300 overflow-hidden">
           <p
             id="explanation-text"
             class="text-lg font-semibold leading-relaxed opacity-95 whitespace-pre-wrap"
