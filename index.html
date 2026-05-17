@@ -385,7 +385,7 @@
           <span id="feedback-toggle-label" class="text-white/70 text-xs font-black tracking-widest">접기</span>
         </button>
         <div id="feedback-body" class="rounded-[2.5rem] p-8 shadow-2xl space-y-6 transition-all duration-300 overflow-hidden">
-          <p id="explanation-title" class="text-lg leading-relaxed whitespace-pre-wrap" style="font-weight:600; color:#ff5555;"></p>
+          <p id="explanation-title" class="text-lg leading-relaxed whitespace-pre-wrap" style="font-weight:600; color:#ff5;"></p>
           <p id="explanation-text" class="text-base leading-relaxed whitespace-pre-wrap" style="color:#ffffff; font-weight:400;"></p>
           <button
             id="next-btn"
@@ -436,5 +436,25 @@
     </div>
 
     <script type="module" src="script.js"></script>
+    <script>
+      // Service Worker 등록 - PWA 자동 업데이트
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          // 새 버전 감지 시 즉시 적용
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // 새 버전 설치 완료 → 자동 새로고침
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                  window.location.reload();
+                });
+                newWorker.postMessage({ action: 'skipWaiting' });
+              }
+            });
+          });
+        });
+      }
+    </script>
   </body>
 </html>

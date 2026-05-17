@@ -474,7 +474,7 @@ async function checkAnswer(idx) {
       fbBody.style.paddingBottom = "0";
       fbBody.style.opacity = "0";
       chevron.style.transform = "rotate(180deg)";
-      toggleLabel.innerText = "펼치기 ▲";
+      toggleLabel.innerText = "펼치기";
     } else {
       fbBody.style.maxHeight = "";
       fbBody.style.paddingTop = "";
