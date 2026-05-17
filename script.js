@@ -327,8 +327,8 @@ document.getElementById("btn-logout").onclick = () => {
 async function startApp(mode) {
   currentMode = mode;
   try {
-    // const response = await fetch("./data/graphics.json");
-    const response = await fetch("./data/exam.json");
+    const response = await fetch("./data/graphics.json");
+    // const response = await fetch("./data/exam.json");
     const data = await response.json();
     allQuestions = data.questions;
     const ids = getWrongIds();
@@ -438,15 +438,28 @@ async function checkAnswer(idx) {
   updateWrongCountUI();
   const fb = document.getElementById("feedback");
   const fbBody = document.getElementById("feedback-body");
+  const chevron = document.getElementById("feedback-chevron");
+  const toggleLabel = document.getElementById("feedback-toggle-label");
   let isFeedbackCollapsed = false;
 
   // 색상 적용
   fbBody.className = `rounded-[2.5rem] p-8 shadow-2xl space-y-6 transition-all duration-300 overflow-hidden ${isCorrect ? "bg-emerald-600" : "bg-rose-600"}`;
   document.getElementById("next-btn").className =
     `w-full py-5 bg-white font-black rounded-2xl shadow-md ${isCorrect ? "text-emerald-600" : "text-rose-600"}`;
-  document.getElementById("explanation-text").innerText = isCorrect
-    ? `정답입니다!\n\n${q.explanation}`
-    : `정답은 ${q.answer_index + 1}번입니다.\n\n${q.explanation}`;
+
+  // 타이틀/설명 분리
+  document.getElementById("explanation-title").innerText = isCorrect
+    ? "정답입니다! ✅"
+    : `오답! 정답은 ${q.answer_index + 1}번입니다. ❌`;
+  document.getElementById("explanation-text").innerText = q.explanation || "";
+
+  // 꺾쇠 초기화 (펼쳐진 상태 = 아래 방향)
+  chevron.style.transform = "rotate(0deg)";
+  toggleLabel.innerText = "접기";
+  fbBody.style.maxHeight = "";
+  fbBody.style.paddingTop = "";
+  fbBody.style.paddingBottom = "";
+  fbBody.style.opacity = "1";
 
   // 모달 표시
   fb.classList.remove("hidden");
@@ -460,11 +473,15 @@ async function checkAnswer(idx) {
       fbBody.style.paddingTop = "0";
       fbBody.style.paddingBottom = "0";
       fbBody.style.opacity = "0";
+      chevron.style.transform = "rotate(180deg)";
+      toggleLabel.innerText = "펼치기 ▲";
     } else {
       fbBody.style.maxHeight = "";
       fbBody.style.paddingTop = "";
       fbBody.style.paddingBottom = "";
       fbBody.style.opacity = "1";
+      chevron.style.transform = "rotate(0deg)";
+      toggleLabel.innerText = "접기";
     }
   };
 }
